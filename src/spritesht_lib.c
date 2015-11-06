@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+spritesht_int _find_lowest_power(spritesht_int val);
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data);
 bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, unsigned char *data);
 
@@ -36,13 +37,6 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	return true;
 }
 
-spritesht_int find_lowest_power(spritesht_int val)
-{
-	int result = 1;
-	while (result < val) result <<= 1;
-	return result;
-}
-
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
@@ -53,8 +47,8 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 		width += sheet->sprites[i].width;
 		height += sheet->sprites[i].height;
 	}
-	width = find_lowest_power(width);
-	height = find_lowest_power(height);
+	width = _find_lowest_power(width);
+	height = _find_lowest_power(height);
 	unsigned char out_data[width*height*4];
 	memset(out_data, '\0', sizeof(out_data));
 
@@ -76,6 +70,13 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 	if(!_sys_save_png(file, width, height, out_data))
 		return false;
 	return true;
+}
+
+spritesht_int _find_lowest_power(spritesht_int val)
+{
+	int result = 1;
+	while (result < val) result <<= 1;
+	return result;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
