@@ -118,11 +118,20 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 		width += sheet->sprites[i].width;
 		height += sheet->sprites[i].height;
 	}
-	width = _find_lowest_power(width);
-	height = _find_lowest_power(height);
 
-	if(!spritesht_layout(sheet, width, height))
-		return false;
+	width = 1;
+	height = 1;
+	bool width_next = true;
+	while(true)
+	{
+		if(spritesht_layout(sheet, width, height))
+			break;
+		if(width_next) width <<= 1;
+		else height <<= 1;
+		width_next = !width_next;
+		if(width > 4096) // Don't hard code this limit
+			return false;
+	}
 
 	unsigned char out_data[width*height*4];
 	memset(out_data, '\0', sizeof(out_data));
@@ -143,13 +152,6 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 	if(!_sys_save_png(file, width, height, out_data))
 		return false;
 	return true;
-}
-
-spritesht_int _find_lowest_power(spritesht_int val)
-{
-	int result = 1;
-	while (result < val) result <<= 1;
-	return result;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
