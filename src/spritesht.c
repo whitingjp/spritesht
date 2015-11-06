@@ -1,15 +1,26 @@
 
 #include <spritesht_lib.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int main()
 {
 	spritesht_int w, h;
-	unsigned char *data;
-	if(!_sys_load_png("../../data/ball.png", &w, &h, &data))
+	spritesht_spritesheet sheet = spritesht_create(2);
+	if(!spritesht_add_sprite(&sheet, "../../data/ball.png"))
+	{
+		printf("Failed to add ball\n");
 		return 1;
-	if(!_sys_save_png("out.png", w, h, data))
+	}
+	if(!spritesht_add_sprite(&sheet, "../../data/shard.png"))
+	{
+		printf("Failed to add shard\n");
 		return 1;
-	free(data);
+	}
+	if(spritesht_save(&sheet, "out.png"))
+	{
+		printf("Failed to save sheet\n");
+		return 1;
+	}
 	return 0;
 }

@@ -5,6 +5,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data);
+bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, unsigned char *data);
+
+spritesht_spritesheet spritesht_create(spritesht_int size)
+{
+	spritesht_spritesheet sheet;
+	sheet.size = size;
+	sheet.num_sprites = 0;
+	sheet.sprites = malloc(sizeof(spritesht_sprite) * size);
+	return sheet;
+}
+void spritesht_free(spritesht_spritesheet* sheet)
+{
+	free(sheet->sprites);
+}
+bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
+{
+	return false;
+}
+bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
+{
+	return false;
+}
+
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
 {
 	png_structp png_ptr;
