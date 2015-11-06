@@ -32,11 +32,50 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 		return false;
 	strncpy(sprite->filename, file, 254);
 	sprite->filename[255] = '\0';
+	sheet->num_sprites++;
 	return true;
 }
+
+spritesht_int find_lowest_power(spritesht_int val)
+{
+	int result = 1;
+	while (result < val) result <<= 1;
+	return result;
+}
+
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
-	return false;
+	spritesht_int i;
+	spritesht_int width = 0;
+	spritesht_int height = 0;
+	for(i=0; i<sheet->num_sprites; i++)
+	{
+		width += sheet->sprites[i].width;
+		height += sheet->sprites[i].height;
+	}
+	width = find_lowest_power(width);
+	height = find_lowest_power(height);
+	unsigned char out_data[width*height*4];
+	memset(out_data, '\0', sizeof(out_data));
+
+	spritesht_int x = 0;
+	spritesht_int y = 0;
+	for(i=0; i<sheet->num_sprites; i++)
+	{
+		spritesht_int row;
+		for(row=0; row<sheet->sprites[i].height; row++)
+		{
+			unsigned char* src_start = &sheet->sprites[i].data[row*sheet->sprites[i].width*4];
+			unsigned char* dst_start = &out_data[(x+(y+row)*width)*4];
+			memcpy(dst_start, src_start, 4*sheet->sprites[i].width);
+		}
+		x += sheet->sprites[i].width;
+		y += sheet->sprites[i].height;
+	}
+
+	if(!_sys_save_png(file, width, height, out_data))
+		return false;
+	return true;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
