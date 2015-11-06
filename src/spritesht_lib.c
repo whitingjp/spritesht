@@ -3,7 +3,6 @@
 
 #include <png.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
@@ -111,7 +110,7 @@ bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, 
 	for (y = 0; y < height; ++y)
 	{
 		spritesht_int size = sizeof (uint8_t) * png_width * 4;
-		row_pointers[height-1-y] = &data[size*y];
+		row_pointers[y] = &data[size*y];
 	}
 
 	png_write_image(png, row_pointers);
