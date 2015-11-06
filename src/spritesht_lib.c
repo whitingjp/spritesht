@@ -9,12 +9,12 @@ spritesht_int _find_lowest_power(spritesht_int val);
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data);
 bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, unsigned char *data);
 
-spritesht_spritesheet spritesht_create(spritesht_int size)
+spritesht_spritesheet spritesht_create(spritesht_int max)
 {
 	spritesht_spritesheet sheet;
-	sheet.size = size;
+	sheet.max_sprites = max;
 	sheet.num_sprites = 0;
-	sheet.sprites = malloc(sizeof(spritesht_sprite) * size);
+	sheet.sprites = malloc(sizeof(spritesht_sprite) * max);
 	return sheet;
 }
 void spritesht_free(spritesht_spritesheet* sheet)
@@ -26,10 +26,10 @@ void spritesht_free(spritesht_spritesheet* sheet)
 }
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 {
-	if(sheet->num_sprites >= sheet->size)
+	if(sheet->num_sprites >= sheet->max_sprites)
 		return false;
 	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
-	if(!_sys_load_png(file, &sprite->width, &sprite->height, &sprite->data))
+	if(!_sys_load_png(file, &sprite->size.x, &sprite->size.y, &sprite->data))
 		return false;
 	strncpy(sprite->filename, file, 254);
 	sprite->filename[255] = '\0';
@@ -40,24 +40,21 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 typedef struct
 {
 	bool active;
-	spritesht_int width;
-	spritesht_int height;
-	spritesht_int x;
-	spritesht_int y;
+	spritesht_vec size;
+	spritesht_vec pos;
 } spritesht_cell;
 
 
-bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, spritesht_int height)
+bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 {
 	spritesht_int max_cells = sheet->num_sprites * 4; // TODO - Linked list?
 	spritesht_cell *cells = malloc(sizeof(spritesht_cell)*max_cells);
 	spritesht_int i;
 	for(i=0; i<max_cells; i++)
 		cells[i].active = false;
-	spritesht_cell initial = {true, width, height, 0, 0};
+	spritesht_cell initial = {true, sheet_size, spritesht_vec_zero};
 	cells[0] = initial;
-	spritesht_int x = 0;
-	spritesht_int y = 0;
+	spritesht_vec pos = spritesht_vec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
 		spritesht_int index = -1;
@@ -66,8 +63,8 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 		{
 			bool ok = true;
 			if(!cells[j].active) ok = false;
-			if(cells[j].width < sheet->sprites[i].width) ok = false;
-			if(cells[j].height < sheet->sprites[i].height) ok = false;
+			if(cells[j].size.x < sheet->sprites[i].size.x) ok = false;
+			if(cells[j].size.y < sheet->sprites[i].size.y) ok = false;
 			if(!ok)
 				continue;
 			index = j;
@@ -75,11 +72,10 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 		if(index == -1)
 			return false;
 
-		sheet->sprites[i].x = cells[index].x;
-		sheet->sprites[i].y = cells[index].y;
+		sheet->sprites[i].pos = cells[index].pos;
 
 		spritesht_cell old = cells[index];
-		if(old.width > sheet->sprites[i].width)
+		if(old.size.x > sheet->sprites[i].size.x)
 		{
 			spritesht_int new_index = -1;
 			for(j=0; j<max_cells; j++)
@@ -91,12 +87,12 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 				}
 			}
 			if(new_index == -1) return false;
-			cells[index].width = sheet->sprites[i].width;
-			spritesht_cell newcell = {true, old.width-cells[index].width, old.height, old.x+cells[index].width, old.y};
+			cells[index].size.x = sheet->sprites[i].size.x;
+			spritesht_cell newcell = {true, {old.size.x-cells[index].size.x, old.size.y}, {old.pos.x+cells[index].size.x, old.pos.y}};
 			cells[new_index] = newcell;
 		}
 		old = cells[index];
-		if(old.height > sheet->sprites[i].height)
+		if(old.size.y > sheet->sprites[i].size.y)
 		{
 			spritesht_int new_index = -1;
 			for(j=0; j<max_cells; j++)
@@ -108,8 +104,8 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 				}
 			}
 			if(new_index == -1) return false;
-			cells[index].height = sheet->sprites[i].height;
-			spritesht_cell newcell = {true, old.width, old.height-cells[index].height, old.x, old.y+cells[index].height};
+			cells[index].size.y = sheet->sprites[i].size.y;
+			spritesht_cell newcell = {true, {old.size.x, old.size.y-cells[index].size.y}, {old.pos.x, old.pos.y+cells[index].size.y}};
 			cells[new_index] = newcell;
 		}
 		cells[index].active = false;
@@ -121,45 +117,36 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
-	spritesht_int width = 0;
-	spritesht_int height = 0;
-	for(i=0; i<sheet->num_sprites; i++)
-	{
-		width += sheet->sprites[i].width;
-		height += sheet->sprites[i].height;
-	}
+	spritesht_vec size = {1,1};
 
-	width = 1;
-	height = 1;
 	bool width_next = true;
 	while(true)
 	{
-		if(spritesht_layout(sheet, width, height))
+		if(spritesht_layout(sheet, size))
 			break;
-		if(width_next) width <<= 1;
-		else height <<= 1;
+		if(width_next) size.x <<= 1;
+		else size.y <<= 1;
 		width_next = !width_next;
-		if(width > 4096) // Don't hard code this limit
+		if(size.x > 4096) // TODO Don't hard code this limit
 			return false;
 	}
 
-	unsigned char* out_data = malloc(width*height*4);
-	memset(out_data, '\0', width*height*4);
+	unsigned char* out_data = malloc(size.x*size.y*4);
+	memset(out_data, '\0', size.x*size.y*4);
 
 	for(i=0; i<sheet->num_sprites; i++)
 	{
-		spritesht_int x = sheet->sprites[i].x;
-		spritesht_int y = sheet->sprites[i].y;
+		spritesht_vec p = sheet->sprites[i].pos;
 		spritesht_int row;
-		for(row=0; row<sheet->sprites[i].height; row++)
+		for(row=0; row<sheet->sprites[i].size.y; row++)
 		{
-			unsigned char* src_start = &sheet->sprites[i].data[row*sheet->sprites[i].width*4];
-			unsigned char* dst_start = &out_data[(x+(y+row)*width)*4];
-			memcpy(dst_start, src_start, 4*sheet->sprites[i].width);
+			unsigned char* src_start = &sheet->sprites[i].data[row*sheet->sprites[i].size.x*4];
+			unsigned char* dst_start = &out_data[(p.x+(p.y+row)*size.x)*4];
+			memcpy(dst_start, src_start, 4*sheet->sprites[i].size.x);
 		}
 	}
 
-	bool success = _sys_save_png(file, width, height, out_data);
+	bool success = _sys_save_png(file, size.x, size.y, out_data);
 	free(out_data);
 	return success;
 }

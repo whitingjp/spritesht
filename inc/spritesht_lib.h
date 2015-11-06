@@ -7,22 +7,27 @@ typedef int64_t spritesht_int;
 
 typedef struct
 {
-	char filename[256];
-	unsigned char* data;
-	spritesht_int width;
-	spritesht_int height;
 	spritesht_int x;
 	spritesht_int y;
+} spritesht_vec;
+static const spritesht_vec spritesht_vec_zero = {0,0};
+
+typedef struct
+{
+	char filename[256];
+	unsigned char* data;
+	spritesht_vec size;
+	spritesht_vec pos;
 } spritesht_sprite;
 
 typedef struct
 {
-	spritesht_int size;
+	spritesht_int max_sprites;
 	spritesht_int num_sprites;
 	spritesht_sprite* sprites;
 } spritesht_spritesheet;
 
-spritesht_spritesheet spritesht_create(spritesht_int size);
+spritesht_spritesheet spritesht_create(spritesht_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file);
