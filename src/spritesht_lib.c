@@ -75,23 +75,6 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 		sheet->sprites[i].pos = cells[index].pos;
 
 		spritesht_cell old = cells[index];
-		if(old.size.x > sheet->sprites[i].size.x)
-		{
-			spritesht_int new_index = -1;
-			for(j=0; j<max_cells; j++)
-			{
-				if(!cells[j].active)
-				{
-					new_index = j;
-					break;
-				}
-			}
-			if(new_index == -1) return false;
-			cells[index].size.x = sheet->sprites[i].size.x;
-			spritesht_cell newcell = {true, {old.size.x-cells[index].size.x, old.size.y}, {old.pos.x+cells[index].size.x, old.pos.y}};
-			cells[new_index] = newcell;
-		}
-		old = cells[index];
 		if(old.size.y > sheet->sprites[i].size.y)
 		{
 			spritesht_int new_index = -1;
@@ -108,6 +91,23 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 			spritesht_cell newcell = {true, {old.size.x, old.size.y-cells[index].size.y}, {old.pos.x, old.pos.y+cells[index].size.y}};
 			cells[new_index] = newcell;
 		}
+		old = cells[index];
+		if(old.size.x > sheet->sprites[i].size.x)
+		{
+			spritesht_int new_index = -1;
+			for(j=0; j<max_cells; j++)
+			{
+				if(!cells[j].active)
+				{
+					new_index = j;
+					break;
+				}
+			}
+			if(new_index == -1) return false;
+			cells[index].size.x = sheet->sprites[i].size.x;
+			spritesht_cell newcell = {true, {old.size.x-cells[index].size.x, old.size.y}, {old.pos.x+cells[index].size.x, old.pos.y}};
+			cells[new_index] = newcell;
+		}
 		cells[index].active = false;
 	}
 	free(cells);
@@ -117,7 +117,7 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
-	spritesht_vec size = {1,1};
+	spritesht_vec size = {1024,1024};
 
 	bool width_next = true;
 	while(true)
