@@ -62,7 +62,7 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 	{
 		spritesht_int index = -1;
 		spritesht_int j;
-		for(j=max_cells-1; j>=0; j--)
+		for(j=0; j<max_cells; j++)
 		{
 			bool ok = true;
 			if(!cells[j].active) ok = false;
@@ -83,23 +83,33 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, sprites
 		{
 			spritesht_int new_index = -1;
 			for(j=0; j<max_cells; j++)
+			{
 				if(!cells[j].active)
+				{
 					new_index = j;
-			if(!new_index) return false;
+					break;
+				}
+			}
+			if(new_index == -1) return false;
 			cells[index].width = sheet->sprites[i].width;
 			spritesht_cell newcell = {true, old.width-cells[index].width, old.height, old.x+cells[index].width, old.y};
 			cells[new_index] = newcell;
 		}
-
+		old = cells[index];
 		if(old.height > sheet->sprites[i].height)
 		{
 			spritesht_int new_index = -1;
 			for(j=0; j<max_cells; j++)
+			{
 				if(!cells[j].active)
+				{
 					new_index = j;
-			if(!new_index) return false;
+					break;
+				}
+			}
+			if(new_index == -1) return false;
 			cells[index].height = sheet->sprites[i].height;
-			spritesht_cell newcell = {true, old.width, old.height-cells[index].height, old.y, old.y+cells[index].height};
+			spritesht_cell newcell = {true, old.width, old.height-cells[index].height, old.x, old.y+cells[index].height};
 			cells[new_index] = newcell;
 		}
 		cells[index].active = false;
@@ -133,8 +143,8 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 			return false;
 	}
 
-	unsigned char out_data[width*height*4];
-	memset(out_data, '\0', sizeof(out_data));
+	unsigned char* out_data = malloc(width*height*4);
+	memset(out_data, '\0', width*height*4);
 
 	for(i=0; i<sheet->num_sprites; i++)
 	{
@@ -149,9 +159,9 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 		}
 	}
 
-	if(!_sys_save_png(file, width, height, out_data))
-		return false;
-	return true;
+	bool success = _sys_save_png(file, width, height, out_data);
+	free(out_data);
+	return success;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)

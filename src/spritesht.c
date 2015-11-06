@@ -3,18 +3,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int main()
+int main(int argc, char** argv)
 {
-	spritesht_int w, h;
-	spritesht_spritesheet sheet = spritesht_create(2);
-	if(!spritesht_add_sprite(&sheet, "../../data/ball.png"))
+	spritesht_int i;
+	spritesht_spritesheet sheet = spritesht_create(512);
+	for(i=1; i<argc; i++)
 	{
-		printf("Failed to add ball\n");
-		return 1;
-	}
-	if(!spritesht_add_sprite(&sheet, "../../data/shard.png"))
-	{
-		printf("Failed to add shard\n");
+		if(spritesht_add_sprite(&sheet, argv[i]))
+			continue;
+		printf("Failed to add %s\n", argv[i]);
 		return 1;
 	}
 	if(!spritesht_save(&sheet, "out.png"))
