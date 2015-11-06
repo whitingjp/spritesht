@@ -40,33 +40,72 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 typedef struct
 {
 	bool active;
-	bool filled;
 	spritesht_int width;
 	spritesht_int height;
 	spritesht_int x;
 	spritesht_int y;
-} spritesht_space;
+} spritesht_cell;
 
-void spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, spritesht_int height)
+
+bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, spritesht_int height)
 {
-	spritesht_int max_spaces = sheet->num_sprites * 4; // TODO - Linked list?
-	spritesht_space *spaces = malloc(sizeof(spritesht_space)*max_spaces);
+	spritesht_int max_cells = sheet->num_sprites * 4; // TODO - Linked list?
+	spritesht_cell *cells = malloc(sizeof(spritesht_cell)*max_cells);
 	spritesht_int i;
-	for(i=0; i<max_spaces; i++)
-	{
-		spaces[i].active = false;
-		spaces[i].filled = false;
-	}
+	for(i=0; i<max_cells; i++)
+		cells[i].active = false;
+	spritesht_cell initial = {true, width, height, 0, 0};
+	cells[0] = initial;
 	spritesht_int x = 0;
 	spritesht_int y = 0;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
-		sheet->sprites[i].x = x;
-		sheet->sprites[i].y = y;
-		x += sheet->sprites[i].width;
-		y += sheet->sprites[i].height;
+		spritesht_int index = -1;
+		spritesht_int j;
+		for(j=max_cells-1; j>=0; j--)
+		{
+			bool ok = true;
+			if(!cells[j].active) ok = false;
+			if(cells[j].width < sheet->sprites[i].width) ok = false;
+			if(cells[j].height < sheet->sprites[i].height) ok = false;
+			if(!ok)
+				continue;
+			index = j;
+		}
+		if(index == -1)
+			return false;
+
+		sheet->sprites[i].x = cells[index].x;
+		sheet->sprites[i].y = cells[index].y;
+
+		spritesht_cell old = cells[index];
+		if(old.width > sheet->sprites[i].width)
+		{
+			spritesht_int new_index = -1;
+			for(j=0; j<max_cells; j++)
+				if(!cells[j].active)
+					new_index = j;
+			if(!new_index) return false;
+			cells[index].width = sheet->sprites[i].width;
+			spritesht_cell newcell = {true, old.width-cells[index].width, old.height, old.x+cells[index].width, old.y};
+			cells[new_index] = newcell;
+		}
+
+		if(old.height > sheet->sprites[i].height)
+		{
+			spritesht_int new_index = -1;
+			for(j=0; j<max_cells; j++)
+				if(!cells[j].active)
+					new_index = j;
+			if(!new_index) return false;
+			cells[index].height = sheet->sprites[i].height;
+			spritesht_cell newcell = {true, old.width, old.height-cells[index].height, old.y, old.y+cells[index].height};
+			cells[new_index] = newcell;
+		}
+		cells[index].active = false;
 	}
-	free(spaces);
+	free(cells);
+	return true;
 }
 
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
@@ -82,7 +121,8 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 	width = _find_lowest_power(width);
 	height = _find_lowest_power(height);
 
-	spritesht_layout(sheet, width, height);
+	if(!spritesht_layout(sheet, width, height))
+		return false;
 
 	unsigned char out_data[width*height*4];
 	memset(out_data, '\0', sizeof(out_data));
