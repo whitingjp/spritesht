@@ -37,6 +37,38 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	return true;
 }
 
+typedef struct
+{
+	bool active;
+	bool filled;
+	spritesht_int width;
+	spritesht_int height;
+	spritesht_int x;
+	spritesht_int y;
+} spritesht_space;
+
+void spritesht_layout(spritesht_spritesheet* sheet, spritesht_int width, spritesht_int height)
+{
+	spritesht_int max_spaces = sheet->num_sprites * 4; // TODO - Linked list?
+	spritesht_space *spaces = malloc(sizeof(spritesht_space)*max_spaces);
+	spritesht_int i;
+	for(i=0; i<max_spaces; i++)
+	{
+		spaces[i].active = false;
+		spaces[i].filled = false;
+	}
+	spritesht_int x = 0;
+	spritesht_int y = 0;
+	for(i=0; i<sheet->num_sprites; i++)
+	{
+		sheet->sprites[i].x = x;
+		sheet->sprites[i].y = y;
+		x += sheet->sprites[i].width;
+		y += sheet->sprites[i].height;
+	}
+	free(spaces);
+}
+
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
@@ -49,13 +81,16 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 	}
 	width = _find_lowest_power(width);
 	height = _find_lowest_power(height);
+
+	spritesht_layout(sheet, width, height);
+
 	unsigned char out_data[width*height*4];
 	memset(out_data, '\0', sizeof(out_data));
 
-	spritesht_int x = 0;
-	spritesht_int y = 0;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
+		spritesht_int x = sheet->sprites[i].x;
+		spritesht_int y = sheet->sprites[i].y;
 		spritesht_int row;
 		for(row=0; row<sheet->sprites[i].height; row++)
 		{
@@ -63,8 +98,6 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 			unsigned char* dst_start = &out_data[(x+(y+row)*width)*4];
 			memcpy(dst_start, src_start, 4*sheet->sprites[i].width);
 		}
-		x += sheet->sprites[i].width;
-		y += sheet->sprites[i].height;
 	}
 
 	if(!_sys_save_png(file, width, height, out_data))

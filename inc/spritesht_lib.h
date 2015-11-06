@@ -11,6 +11,8 @@ typedef struct
 	unsigned char* data;
 	spritesht_int width;
 	spritesht_int height;
+	spritesht_int x;
+	spritesht_int y;
 } spritesht_sprite;
 
 typedef struct
