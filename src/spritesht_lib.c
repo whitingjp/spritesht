@@ -18,11 +18,21 @@ spritesht_spritesheet spritesht_create(spritesht_int size)
 }
 void spritesht_free(spritesht_spritesheet* sheet)
 {
+	spritesht_int i;
+	for(i=0; i<sheet->num_sprites; i++)
+		free(sheet->sprites[i].data);
 	free(sheet->sprites);
 }
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 {
-	return false;
+	if(sheet->num_sprites >= sheet->size)
+		return false;
+	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
+	if(!_sys_load_png(file, &sprite->width, &sprite->height, &sprite->data))
+		return false;
+	strncpy(sprite->filename, file, 254);
+	sprite->filename[255] = '\0';
+	return true;
 }
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {

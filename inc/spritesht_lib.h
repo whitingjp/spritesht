@@ -7,12 +7,10 @@ typedef int64_t spritesht_int;
 
 typedef struct
 {
-	const char* filename;
-	const unsigned char* data;
+	char filename[256];
+	unsigned char* data;
 	spritesht_int width;
 	spritesht_int height;
-	spritesht_int x;
-	spritesht_int y;
 } spritesht_sprite;
 
 typedef struct
