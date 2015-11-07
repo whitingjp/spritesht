@@ -14,6 +14,14 @@ static const spritesht_vec spritesht_vec_zero = {0,0};
 
 typedef struct
 {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+	unsigned char a;
+} spritesht_col;
+
+typedef struct
+{
 	char filename[256];
 	unsigned char* data;
 	spritesht_vec size;
@@ -30,6 +38,7 @@ typedef struct
 spritesht_spritesheet spritesht_create(spritesht_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
+bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size, spritesht_col col);
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file);
 
 #endif // SPRITESHT_LIB_H_

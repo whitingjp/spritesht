@@ -14,6 +14,7 @@ int main(int argc, char** argv)
 		printf("Failed to add %s\n", argv[i]);
 		return 1;
 	}
+
 	if(!spritesht_save(&sheet, "out.png"))
 	{
 		printf("Failed to save sheet\n");

@@ -36,6 +36,25 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	sheet->num_sprites++;
 	return true;
 }
+bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size, spritesht_col col)
+{
+	if(sheet->num_sprites >= sheet->max_sprites)
+		return false;
+	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
+	sprite->size = size;
+	sprite->data = malloc(size.x*size.y*4);
+	spritesht_int i;
+	for(i=0; i<size.x*size.y*4; i+=4)
+	{
+		sprite->data[i+0] = col.r;
+		sprite->data[i+1] = col.g;
+		sprite->data[i+2] = col.b;
+		sprite->data[i+3] = col.a;
+	}
+	strncpy(sprite->filename, "fake", 254);
+	sheet->num_sprites++;
+	return true;
+}
 
 typedef struct cell
 {
@@ -53,6 +72,8 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 	spritesht_vec pos = spritesht_vec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
+		if(!cells)
+			return false;
 		spritesht_cell* iter = cells;
 		spritesht_cell* c = NULL;
 		while(iter)
@@ -89,12 +110,19 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
 		}
-		iter = cells;
-		while(iter->next != c)
-			iter = iter->next;
-		spritesht_cell* next = iter->next->next;
-		free(iter->next);
-		iter->next = next;
+		if(cells == c)
+		{
+			cells = c->next;
+			free(c);
+		} else
+		{
+			iter = cells;
+			while(iter->next != c)
+				iter = iter->next;
+			spritesht_cell* next = iter->next->next;
+			free(iter->next);
+			iter->next = next;
+		}
 	}
 	while(cells)
 	{
