@@ -37,87 +37,73 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	return true;
 }
 
-typedef struct
+typedef struct cell
 {
 	bool active;
 	spritesht_vec size;
 	spritesht_vec pos;
+	struct cell* next;
 } spritesht_cell;
-
 
 bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 {
-	spritesht_int max_cells = sheet->num_sprites * 4; // TODO - Linked list?
-	spritesht_cell *cells = malloc(sizeof(spritesht_cell)*max_cells);
 	spritesht_int i;
-	for(i=0; i<max_cells; i++)
-		cells[i].active = false;
-	spritesht_cell initial = {true, sheet_size, spritesht_vec_zero};
-	cells[0] = initial;
+	spritesht_cell initial = {true, sheet_size, spritesht_vec_zero, NULL};
+	spritesht_cell* cells = malloc(sizeof(spritesht_cell));
+	*cells = initial;
 	spritesht_vec pos = spritesht_vec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
-		spritesht_int index = -1;
-		spritesht_int j;
-		for(j=0; j<max_cells; j++)
+		spritesht_cell* c = cells;
+		while(c)
 		{
 			bool ok = true;
-			if(!cells[j].active) ok = false;
-			if(cells[j].size.x < sheet->sprites[i].size.x) ok = false;
-			if(cells[j].size.y < sheet->sprites[i].size.y) ok = false;
+			if(!c->active) ok = false;
+			if(c->size.x < sheet->sprites[i].size.x) ok = false;
+			if(c->size.y < sheet->sprites[i].size.y) ok = false;
 			if(!ok)
+			{
+				c = c->next;
 				continue;
-			index = j;
+			}
+			break;
 		}
-		if(index == -1)
+		if(!c)
 			return false;
 
-		sheet->sprites[i].pos = cells[index].pos;
+		sheet->sprites[i].pos = c->pos;
 
-		spritesht_cell old = cells[index];
+		spritesht_cell old = *c;
 		if(old.size.y > sheet->sprites[i].size.y)
 		{
-			spritesht_int new_index = -1;
-			for(j=0; j<max_cells; j++)
-			{
-				if(!cells[j].active)
-				{
-					new_index = j;
-					break;
-				}
-			}
-			if(new_index == -1) return false;
-			cells[index].size.y = sheet->sprites[i].size.y;
-			spritesht_cell newcell = {true, {old.size.x, old.size.y-cells[index].size.y}, {old.pos.x, old.pos.y+cells[index].size.y}};
-			cells[new_index] = newcell;
+			c->size.y = sheet->sprites[i].size.y;
+			spritesht_cell newcell = {true, {old.size.x, old.size.y-c->size.y}, {old.pos.x, old.pos.y+c->size.y}, cells};
+			cells = malloc(sizeof(spritesht_cell));
+			*cells = newcell;
 		}
-		old = cells[index];
+		old = *c;
 		if(old.size.x > sheet->sprites[i].size.x)
 		{
-			spritesht_int new_index = -1;
-			for(j=0; j<max_cells; j++)
-			{
-				if(!cells[j].active)
-				{
-					new_index = j;
-					break;
-				}
-			}
-			if(new_index == -1) return false;
-			cells[index].size.x = sheet->sprites[i].size.x;
-			spritesht_cell newcell = {true, {old.size.x-cells[index].size.x, old.size.y}, {old.pos.x+cells[index].size.x, old.pos.y}};
-			cells[new_index] = newcell;
+			c->size.x = sheet->sprites[i].size.x;
+			spritesht_cell newcell = {true, {old.size.x-c->size.x, old.size.y}, {old.pos.x+c->size.x, old.pos.y}, cells};
+			cells = malloc(sizeof(spritesht_cell));
+			*cells = newcell;
 		}
-		cells[index].active = false;
+		c->active = false;
 	}
-	free(cells);
+	while(cells)
+	{
+		spritesht_cell* next = cells->next;
+		free(cells);
+		cells = next;
+	}
 	return true;
 }
 
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
-	spritesht_vec size = {1024,1024};
+	spritesht_vec size = {1,1};
 
 	bool width_next = true;
 	while(true)
