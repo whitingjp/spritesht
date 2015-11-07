@@ -133,10 +133,19 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 	return true;
 }
 
+int _spritesht_cmpfunc (const void * va, const void * vb)
+{
+	spritesht_sprite* a = (spritesht_sprite*)va;
+	spritesht_sprite* b = (spritesht_sprite*)vb;
+	return (b->size.y-a->size.y)*1000 + (b->size.x-a->size.x);
+}
+
 bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
 	spritesht_vec size = {1,1};
+
+	qsort(sheet->sprites, sheet->num_sprites, sizeof(spritesht_sprite), _spritesht_cmpfunc);
 
 	bool width_next = true;
 	while(true)
