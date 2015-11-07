@@ -53,18 +53,20 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 	spritesht_vec pos = spritesht_vec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
-		spritesht_cell* c = cells;
-		while(c)
+		spritesht_cell* iter = cells;
+		spritesht_cell* c = NULL;
+		while(iter)
 		{
 			bool ok = true;
-			if(c->size.x < sheet->sprites[i].size.x) ok = false;
-			if(c->size.y < sheet->sprites[i].size.y) ok = false;
-			if(!ok)
-			{
-				c = c->next;
-				continue;
-			}
-			break;
+			if(iter->size.x < sheet->sprites[i].size.x) ok = false;
+			if(iter->size.y < sheet->sprites[i].size.y) ok = false;
+			bool better = false;
+			if(!c) better = true;
+			if(c && iter->size.x < c->size.x) better = true;
+			if(c && iter->size.y < c->size.y) better = true;
+			if(ok && better)
+				c = iter;
+			iter = iter->next;
 		}
 		if(!c)
 			return false;
@@ -87,7 +89,7 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
 		}
-		spritesht_cell* iter = cells;
+		iter = cells;
 		while(iter->next != c)
 			iter = iter->next;
 		spritesht_cell* next = iter->next->next;
