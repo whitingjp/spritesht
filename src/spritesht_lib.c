@@ -39,7 +39,6 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 
 typedef struct cell
 {
-	bool active;
 	spritesht_vec size;
 	spritesht_vec pos;
 	struct cell* next;
@@ -48,7 +47,7 @@ typedef struct cell
 bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 {
 	spritesht_int i;
-	spritesht_cell initial = {true, sheet_size, spritesht_vec_zero, NULL};
+	spritesht_cell initial = {sheet_size, spritesht_vec_zero, NULL};
 	spritesht_cell* cells = malloc(sizeof(spritesht_cell));
 	*cells = initial;
 	spritesht_vec pos = spritesht_vec_zero;
@@ -58,7 +57,6 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 		while(c)
 		{
 			bool ok = true;
-			if(!c->active) ok = false;
 			if(c->size.x < sheet->sprites[i].size.x) ok = false;
 			if(c->size.y < sheet->sprites[i].size.y) ok = false;
 			if(!ok)
@@ -77,7 +75,7 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 		if(old.size.y > sheet->sprites[i].size.y)
 		{
 			c->size.y = sheet->sprites[i].size.y;
-			spritesht_cell newcell = {true, {old.size.x, old.size.y-c->size.y}, {old.pos.x, old.pos.y+c->size.y}, cells};
+			spritesht_cell newcell = {{old.size.x, old.size.y-c->size.y}, {old.pos.x, old.pos.y+c->size.y}, cells};
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
 		}
@@ -85,11 +83,16 @@ bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
 		if(old.size.x > sheet->sprites[i].size.x)
 		{
 			c->size.x = sheet->sprites[i].size.x;
-			spritesht_cell newcell = {true, {old.size.x-c->size.x, old.size.y}, {old.pos.x+c->size.x, old.pos.y}, cells};
+			spritesht_cell newcell = {{old.size.x-c->size.x, old.size.y}, {old.pos.x+c->size.x, old.pos.y}, cells};
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
 		}
-		c->active = false;
+		spritesht_cell* iter = cells;
+		while(iter->next != c)
+			iter = iter->next;
+		spritesht_cell* next = iter->next->next;
+		free(iter->next);
+		iter->next = next;
 	}
 	while(cells)
 	{
