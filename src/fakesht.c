@@ -14,19 +14,19 @@ int main()
 	time_t t;
  	srand((unsigned) time(&t));
 
- 	spritesht_int num_sprites = 5;
+ 	spritesht_int num_sprites = 50;
 
 	spritesht_int i;
 	spritesht_spritesheet sheet = spritesht_create(num_sprites);
 	for(i=0; i<num_sprites; i++)
 	{
 		spritesht_vec size;
-		size.x = randint(128);
-		size.y = randint(128);
+		size.x = randint(32)+1;
+		size.y = randint(32)+1;
 		spritesht_col col;
 		col.r = randint(256);
-		col.g = randint(256);
-		col.b = randint(256);
+		col.g = col.r*0.4;
+		col.b = col.r*0.4;
 		col.a = 0xff;
 		if(!spritesht_add_fake_sprite(&sheet, size, col))
 		{
