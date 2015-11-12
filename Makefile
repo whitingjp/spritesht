@@ -6,7 +6,7 @@ OUT = $(BUILD)/out
 CFLAGS = -Iinput/libpng -Iinc -g
 LDFLAGS = -Linput/libpng -Linput/zlib -lpng -lz
 
-all: $(OUT)/spritesht $(OUT)/fakesht
+all: $(OUT)/spritesht $(OUT)/fakesht $(OUT)/spritesht.a
 
 clean:
 	rm -rf $(BUILD)
@@ -24,3 +24,7 @@ FAKESHT_OBJ = $(OBJ)/spritesht_lib.o $(OBJ)/fakesht.o
 $(OUT)/fakesht: $(FAKESHT_OBJ)
 	@mkdir -p $(dir $(@))
 	gcc $(LDFLAGS) -o $@ $(FAKESHT_OBJ)
+
+$(OUT)/spritesht.a: $(OBJ)/spritesht_lib.o
+	@mkdir -p $(dir $(@))
+	ar rcs $@ $<
