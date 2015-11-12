@@ -15,13 +15,17 @@ spritesht_spritesheet spritesht_create(spritesht_int max)
 	sheet.max_sprites = max;
 	sheet.num_sprites = 0;
 	sheet.sprites = malloc(sizeof(spritesht_sprite) * max);
+	spritesht_int i;
+	for(i=0; i<sheet.max_sprites; i++)
+		sheet.sprites[i].data = NULL;
 	return sheet;
 }
 void spritesht_free(spritesht_spritesheet* sheet)
 {
 	spritesht_int i;
 	for(i=0; i<sheet->num_sprites; i++)
-		free(sheet->sprites[i].data);
+		if(sheet->sprites[i].data)
+			free(sheet->sprites[i].data);
 	free(sheet->sprites);
 }
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
@@ -140,7 +144,7 @@ int _spritesht_cmpfunc (const void * va, const void * vb)
 	return (b->size.y-a->size.y)*1000 + (b->size.x-a->size.x);
 }
 
-bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
+bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_int i;
 	spritesht_vec size = {1,1};
@@ -177,6 +181,47 @@ bool spritesht_save(spritesht_spritesheet* sheet, const char* file)
 	bool success = _sys_save_png(file, size.x, size.y, out_data);
 	free(out_data);
 	return success;
+}
+
+bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file)
+{
+	spritesht_spritesheet save = spritesht_create(sheet->num_sprites);
+	spritesht_int i;
+	save.num_sprites = sheet->num_sprites;
+	for(i=0; i<sheet->num_sprites; i++)
+	{
+		save.sprites[i] = sheet->sprites[i];
+		save.sprites[i].data = NULL;
+	}
+	FILE *fp = fopen(file, "wb");
+	if(!fp)
+		return false;
+	fwrite(&spritesht_magic_value, sizeof(spritesht_int), 1, fp);
+	fwrite(&sheet->num_sprites, sizeof(spritesht_int), 1, fp);
+	fwrite(save.sprites, sizeof(spritesht_sprite), sheet->num_sprites, fp);
+	fclose(fp);
+	return true;
+}
+bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file)
+{
+	FILE *fp = fopen(file, "rb");
+	if(!fp)
+		return false;
+	spritesht_int magic;
+	fread(&magic, sizeof(spritesht_int), 1, fp);
+	if(magic != spritesht_magic_value)
+		return false;
+	spritesht_int size;
+	fread(&size, sizeof(spritesht_int), 1, fp);
+	*sheet = spritesht_create(size);
+	sheet->num_sprites = size;
+	fread(sheet->sprites, sizeof(spritesht_sprite), size, fp);
+	fclose(fp);
+	return true;
+}
+bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file)
+{
+	return false;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)

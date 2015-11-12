@@ -35,10 +35,16 @@ typedef struct
 	spritesht_sprite* sprites;
 } spritesht_spritesheet;
 
+static const spritesht_int spritesht_magic_value = 0x9544fad7;
+
 spritesht_spritesheet spritesht_create(spritesht_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size, spritesht_col col);
-bool spritesht_save(spritesht_spritesheet* sheet, const char* file);
+bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file);
+bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file);
+bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file);
+bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file);
+
 
 #endif // SPRITESHT_LIB_H_

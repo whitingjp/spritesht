@@ -35,7 +35,7 @@ int main()
 		}
 	}
 
-	if(!spritesht_save(&sheet, "out.png"))
+	if(!spritesht_save_image(&sheet, "out.png"))
 	{
 		printf("Failed to save sheet\n");
 		return 1;
