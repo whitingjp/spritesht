@@ -25,6 +25,11 @@ int main(int argc, char** argv)
 		printf("Failed to save meta\n");
 		return 1;
 	}
+	if(!spritesht_save_meta_as_csv(&sheet, "out.csv"))
+	{
+		printf("Failed to save csv\n");
+		return 1;
+	}
 	spritesht_free(&sheet);
 	return 0;
 }

@@ -221,7 +221,20 @@ bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file)
 }
 bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file)
 {
-	return false;
+	FILE *fp = fopen(file, "w");
+	if(!fp)
+		return false;
+	fprintf(fp, "# Size\n");
+	fprintf(fp, "%d\n", (int)sheet->num_sprites);
+	spritesht_int i;
+	fprintf(fp, "# Filename, X Size, Y Size, X Pos, Y Pos\n");
+	for(i=0; i<sheet->num_sprites; i++)
+	{
+		spritesht_sprite s = sheet->sprites[i];
+		fprintf(fp, "%s,%d,%d,%d,%d\n", s.filename, (int)s.size.x, (int)s.size.y, (int)s.pos.x, (int)s.pos.y);
+	}
+	fclose(fp);
+	return true;
 }
 
 bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
