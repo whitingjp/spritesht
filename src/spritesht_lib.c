@@ -353,16 +353,12 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 		*width = read_width;
 	if(height)
 		*height = read_height;
-	if(!(color_type & PNG_COLOR_MASK_ALPHA))
-	{
-		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-		return false;
-	}
+	bool has_alpha = color_type & PNG_COLOR_MASK_ALPHA;
 
 	unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 	if(data)
 	{
-		*data = (unsigned char*) malloc(row_bytes * read_height);
+		unsigned char* load = (unsigned char*) malloc(row_bytes * read_height);
 
 		printf("sizeof %d\n", (int)(row_bytes * read_height));
 
@@ -371,8 +367,23 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 		png_uint_32 i;
 		for (i = 0; i < read_height; i++)
 		{
-			memcpy(*data+(row_bytes * (i)), row_pointers[i], row_bytes);
+			memcpy(load+(row_bytes * i), row_pointers[i], row_bytes);
 		}
+
+		*data = (unsigned char*) malloc(row_bytes * read_height);
+		for(i=0; i<read_width*read_height; i++)
+		{
+			spritesht_int dst_index = i*4;
+			spritesht_int src_index = has_alpha ? i*4 : i*3;
+			*(*data+dst_index) = load[src_index+0];
+			*(*data+dst_index+1) = load[src_index+1];
+			*(*data+dst_index+2) = load[src_index+2];
+			if(has_alpha)
+				*(*data+dst_index+3) = load[src_index+3];
+			else
+				*(*data+dst_index+3) = 0xff;
+		}
+		free(load);
 	}
 	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 	fclose(fp);
