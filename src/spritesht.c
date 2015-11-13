@@ -6,7 +6,7 @@
 int main(int argc, char** argv)
 {
 	spritesht_int i;
-	spritesht_spritesheet sheet = spritesht_create(512);
+	spritesht_spritesheet sheet = spritesht_create(4096);
 	for(i=1; i<argc; i++)
 	{
 		if(spritesht_add_sprite(&sheet, argv[i]))
