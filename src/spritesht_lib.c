@@ -31,8 +31,8 @@ void spritesht_free(spritesht_spritesheet* sheet)
 
 bool _spritesht_is_clear(spritesht_sprite* sprite, spritesht_vec pos)
 {
-	spritesht_int index = (pos.x+pos.y*sprite->original_size.x)*4;
-	return sprite->data[index+3];
+	spritesht_int index = pos.x+pos.y*sprite->original_size.x;
+	return *(sprite->data+index*4+3);
 }
 
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
@@ -353,11 +353,18 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 		*width = read_width;
 	if(height)
 		*height = read_height;
+	if(!(color_type & PNG_COLOR_MASK_ALPHA))
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+		return false;
+	}
 
 	unsigned int row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 	if(data)
 	{
 		*data = (unsigned char*) malloc(row_bytes * read_height);
+
+		printf("sizeof %d\n", (int)(row_bytes * read_height));
 
 		png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 
