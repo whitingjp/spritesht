@@ -28,6 +28,13 @@ void spritesht_free(spritesht_spritesheet* sheet)
 			free(sheet->sprites[i].data);
 	free(sheet->sprites);
 }
+
+bool _spritesht_is_clear(spritesht_sprite* sprite, spritesht_vec pos)
+{
+	spritesht_int index = (pos.x+pos.y*sprite->original_size.x)*4;
+	return sprite->data[index+3];
+}
+
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 {
 	if(sheet->num_sprites >= sheet->max_sprites)
@@ -35,8 +42,62 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
 	if(!_sys_load_png(file, &sprite->size.x, &sprite->size.y, &sprite->data))
 		return false;
+	sprite->original_size = sprite->size;
+	sprite->offset = spritesht_vec_zero;
 	strncpy(sprite->filename, file, 254);
 	sprite->filename[255] = '\0';
+
+	spritesht_vec p;
+	spritesht_int top = 0;
+	spritesht_int right = sprite->original_size.x;
+	spritesht_int bottom = sprite->original_size.y;
+	spritesht_int left = 0;
+
+	for(p.x=0; p.x<sprite->size.x; p.x++)
+	{
+		bool all_clear = true;
+		for(p.y=0; p.y<sprite->size.y; p.y++)
+			all_clear &= !_spritesht_is_clear(sprite, p);
+		if(!all_clear)
+			break;
+		left++;
+	}
+	for(p.y=0; p.y<sprite->size.y; p.y++)
+	{
+		bool all_clear = true;
+		for(p.x=0; p.x<sprite->size.x; p.x++)
+			all_clear &= !_spritesht_is_clear(sprite, p);
+		if(!all_clear)
+			break;
+		top++;
+	}
+	for(p.x=sprite->size.x-1; p.x>=left; p.x--)
+	{
+		bool all_clear = true;
+		for(p.y=0; p.y<sprite->size.y; p.y++)
+			all_clear &= !_spritesht_is_clear(sprite, p);
+		if(!all_clear)
+			break;
+		right--;
+	}
+	for(p.y=sprite->size.y-1; p.y>=top; p.y--)
+	{
+		bool all_clear = true;
+		for(p.x=0; p.x<sprite->size.x; p.x++)
+			all_clear &= !_spritesht_is_clear(sprite, p);
+		if(!all_clear)
+			break;
+		bottom--;
+	}
+
+	sprite->offset.x = left;
+	sprite->offset.y = top;
+	sprite->size.x = right-left;
+	sprite->size.y = bottom-top;
+	printf("sprite->filename %s\n", sprite->filename);
+	printf("sprite->original_size %d %d\n", (int)sprite->original_size.x, (int)sprite->original_size.y);
+	printf("sprite->offset %d %d sprite->size %d %d\n", (int)sprite->offset.x, (int)sprite->offset.y, (int)sprite->size.x, (int)sprite->size.y);
+
 	sheet->num_sprites++;
 	return true;
 }
@@ -168,13 +229,15 @@ bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 
 	for(i=0; i<sheet->num_sprites; i++)
 	{
-		spritesht_vec p = sheet->sprites[i].pos;
+		spritesht_sprite s = sheet->sprites[i];
+		spritesht_vec p = s.pos;
 		spritesht_int row;
-		for(row=0; row<sheet->sprites[i].size.y; row++)
+		for(row=0; row<s.size.y; row++)
 		{
-			unsigned char* src_start = &sheet->sprites[i].data[row*sheet->sprites[i].size.x*4];
+			spritesht_int index = (row+s.offset.y)*s.original_size.x+s.offset.x;
+			unsigned char* src_start = &s.data[index*4];
 			unsigned char* dst_start = &out_data[(p.x+(p.y+row)*size.x)*4];
-			memcpy(dst_start, src_start, 4*sheet->sprites[i].size.x);
+			memcpy(dst_start, src_start, 4*s.size.x);
 		}
 	}
 
@@ -227,11 +290,14 @@ bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file)
 	fprintf(fp, "# Size\n");
 	fprintf(fp, "%d\n", (int)sheet->num_sprites);
 	spritesht_int i;
-	fprintf(fp, "# Filename, X Size, Y Size, X Pos, Y Pos\n");
+	fprintf(fp, "# Filename, X Size, Y Size, X Pos, Y Pos, X Off, Y Off, X Orig, Y Orig\n");
 	for(i=0; i<sheet->num_sprites; i++)
 	{
 		spritesht_sprite s = sheet->sprites[i];
-		fprintf(fp, "%s,%d,%d,%d,%d\n", s.filename, (int)s.size.x, (int)s.size.y, (int)s.pos.x, (int)s.pos.y);
+		fprintf(fp, "%s,%d,%d,%d,%d,%d,%d,%d,%d\n", s.filename, (int)s.size.x, (int)s.size.y,
+			                                        (int)s.pos.x, (int)s.pos.y,
+			                                        (int)s.offset.x, (int)s.offset.y,
+			                                        (int)s.original_size.x, (int)s.original_size.y);
 	}
 	fclose(fp);
 	return true;

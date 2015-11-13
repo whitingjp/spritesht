@@ -26,6 +26,8 @@ typedef struct
 	unsigned char* data;
 	spritesht_vec size;
 	spritesht_vec pos;
+	spritesht_vec offset;
+	spritesht_vec original_size;
 } spritesht_sprite;
 
 typedef struct
