@@ -94,9 +94,9 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	sprite->offset.y = top;
 	sprite->size.x = right-left;
 	sprite->size.y = bottom-top;
-	printf("sprite->filename %s\n", sprite->filename);
-	printf("sprite->original_size %d %d\n", (int)sprite->original_size.x, (int)sprite->original_size.y);
-	printf("sprite->offset %d %d sprite->size %d %d\n", (int)sprite->offset.x, (int)sprite->offset.y, (int)sprite->size.x, (int)sprite->size.y);
+	// printf("sprite->filename %s\n", sprite->filename);
+	// printf("sprite->original_size %d %d\n", (int)sprite->original_size.x, (int)sprite->original_size.y);
+	// printf("sprite->offset %d %d sprite->size %d %d\n", (int)sprite->offset.x, (int)sprite->offset.y, (int)sprite->size.x, (int)sprite->size.y);
 
 	sheet->num_sprites++;
 	return true;
@@ -360,7 +360,7 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 	{
 		unsigned char* load = (unsigned char*) malloc(row_bytes * read_height);
 
-		printf("sizeof %d\n", (int)(row_bytes * read_height));
+		// printf("sizeof %d\n", (int)(row_bytes * read_height));
 
 		png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 
