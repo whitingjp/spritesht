@@ -3,14 +3,18 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-typedef int64_t spritesht_int;
+
+#ifndef WHITGL_MATH_H_
+typedef int64_t whitgl_int;
 
 typedef struct
 {
-	spritesht_int x;
-	spritesht_int y;
-} spritesht_vec;
-static const spritesht_vec spritesht_vec_zero = {0,0};
+	whitgl_int x;
+	whitgl_int y;
+} whitgl_ivec;
+static const whitgl_ivec whitgl_ivec_zero = {0,0};
+
+#endif
 
 typedef struct
 {
@@ -24,25 +28,25 @@ typedef struct
 {
 	char filename[256];
 	unsigned char* data;
-	spritesht_vec size;
-	spritesht_vec pos;
-	spritesht_vec offset;
-	spritesht_vec original_size;
+	whitgl_ivec size;
+	whitgl_ivec pos;
+	whitgl_ivec offset;
+	whitgl_ivec original_size;
 } spritesht_sprite;
 
 typedef struct
 {
-	spritesht_int max_sprites;
-	spritesht_int num_sprites;
+	whitgl_int max_sprites;
+	whitgl_int num_sprites;
 	spritesht_sprite* sprites;
 } spritesht_spritesheet;
 
-static const spritesht_int spritesht_magic_value = 0x9544fad7;
+static const whitgl_int spritesht_magic_value = 0x9544fad7;
 
-spritesht_spritesheet spritesht_create(spritesht_int max);
+spritesht_spritesheet spritesht_create(whitgl_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
-bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size, spritesht_col col);
+bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, whitgl_ivec size, spritesht_col col);
 bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file);

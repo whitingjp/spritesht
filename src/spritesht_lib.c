@@ -5,33 +5,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-spritesht_int _find_lowest_power(spritesht_int val);
-bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data);
-bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, unsigned char *data);
+whitgl_int _find_lowest_power(whitgl_int val);
+bool _sys_load_png(const char *name, whitgl_int *width, whitgl_int *height, unsigned char **data);
+bool _sys_save_png(const char *name, whitgl_int width, whitgl_int height, unsigned char *data);
 
-spritesht_spritesheet spritesht_create(spritesht_int max)
+spritesht_spritesheet spritesht_create(whitgl_int max)
 {
 	spritesht_spritesheet sheet;
 	sheet.max_sprites = max;
 	sheet.num_sprites = 0;
 	sheet.sprites = malloc(sizeof(spritesht_sprite) * max);
-	spritesht_int i;
+	whitgl_int i;
 	for(i=0; i<sheet.max_sprites; i++)
 		sheet.sprites[i].data = NULL;
 	return sheet;
 }
 void spritesht_free(spritesht_spritesheet* sheet)
 {
-	spritesht_int i;
+	whitgl_int i;
 	for(i=0; i<sheet->num_sprites; i++)
 		if(sheet->sprites[i].data)
 			free(sheet->sprites[i].data);
 	free(sheet->sprites);
 }
 
-bool _spritesht_is_clear(spritesht_sprite* sprite, spritesht_vec pos)
+bool _spritesht_is_clear(spritesht_sprite* sprite, whitgl_ivec pos)
 {
-	spritesht_int index = pos.x+pos.y*sprite->original_size.x;
+	whitgl_int index = pos.x+pos.y*sprite->original_size.x;
 	return *(sprite->data+index*4+3);
 }
 
@@ -43,15 +43,15 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	if(!_sys_load_png(file, &sprite->size.x, &sprite->size.y, &sprite->data))
 		return false;
 	sprite->original_size = sprite->size;
-	sprite->offset = spritesht_vec_zero;
+	sprite->offset = whitgl_ivec_zero;
 	strncpy(sprite->filename, file, 254);
 	sprite->filename[255] = '\0';
 
-	spritesht_vec p;
-	spritesht_int top = 0;
-	spritesht_int right = sprite->original_size.x;
-	spritesht_int bottom = sprite->original_size.y;
-	spritesht_int left = 0;
+	whitgl_ivec p;
+	whitgl_int top = 0;
+	whitgl_int right = sprite->original_size.x;
+	whitgl_int bottom = sprite->original_size.y;
+	whitgl_int left = 0;
 
 	for(p.x=0; p.x<sprite->size.x; p.x++)
 	{
@@ -101,14 +101,14 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	sheet->num_sprites++;
 	return true;
 }
-bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size, spritesht_col col)
+bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, whitgl_ivec size, spritesht_col col)
 {
 	if(sheet->num_sprites >= sheet->max_sprites)
 		return false;
 	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
 	sprite->size = size;
 	sprite->data = malloc(size.x*size.y*4);
-	spritesht_int i;
+	whitgl_int i;
 	for(i=0; i<size.x*size.y*4; i+=4)
 	{
 		sprite->data[i+0] = col.r;
@@ -123,18 +123,18 @@ bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, spritesht_vec size,
 
 typedef struct cell
 {
-	spritesht_vec size;
-	spritesht_vec pos;
+	whitgl_ivec size;
+	whitgl_ivec pos;
 	struct cell* next;
 } spritesht_cell;
 
-bool spritesht_layout(spritesht_spritesheet* sheet, spritesht_vec sheet_size)
+bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_ivec sheet_size)
 {
-	spritesht_int i;
-	spritesht_cell initial = {sheet_size, spritesht_vec_zero, NULL};
+	whitgl_int i;
+	spritesht_cell initial = {sheet_size, whitgl_ivec_zero, NULL};
 	spritesht_cell* cells = malloc(sizeof(spritesht_cell));
 	*cells = initial;
-	spritesht_vec pos = spritesht_vec_zero;
+	whitgl_ivec pos = whitgl_ivec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
 		if(!cells)
@@ -207,8 +207,8 @@ int _spritesht_cmpfunc (const void * va, const void * vb)
 
 bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 {
-	spritesht_int i;
-	spritesht_vec size = {1,1};
+	whitgl_int i;
+	whitgl_ivec size = {1,1};
 
 	qsort(sheet->sprites, sheet->num_sprites, sizeof(spritesht_sprite), _spritesht_cmpfunc);
 
@@ -230,11 +230,11 @@ bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 	for(i=0; i<sheet->num_sprites; i++)
 	{
 		spritesht_sprite s = sheet->sprites[i];
-		spritesht_vec p = s.pos;
-		spritesht_int row;
+		whitgl_ivec p = s.pos;
+		whitgl_int row;
 		for(row=0; row<s.size.y; row++)
 		{
-			spritesht_int index = (row+s.offset.y)*s.original_size.x+s.offset.x;
+			whitgl_int index = (row+s.offset.y)*s.original_size.x+s.offset.x;
 			unsigned char* src_start = &s.data[index*4];
 			unsigned char* dst_start = &out_data[(p.x+(p.y+row)*size.x)*4];
 			memcpy(dst_start, src_start, 4*s.size.x);
@@ -249,7 +249,7 @@ bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file)
 {
 	spritesht_spritesheet save = spritesht_create(sheet->num_sprites);
-	spritesht_int i;
+	whitgl_int i;
 	save.num_sprites = sheet->num_sprites;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
@@ -259,8 +259,8 @@ bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file)
 	FILE *fp = fopen(file, "wb");
 	if(!fp)
 		return false;
-	fwrite(&spritesht_magic_value, sizeof(spritesht_int), 1, fp);
-	fwrite(&sheet->num_sprites, sizeof(spritesht_int), 1, fp);
+	fwrite(&spritesht_magic_value, sizeof(whitgl_int), 1, fp);
+	fwrite(&sheet->num_sprites, sizeof(whitgl_int), 1, fp);
 	fwrite(save.sprites, sizeof(spritesht_sprite), sheet->num_sprites, fp);
 	fclose(fp);
 	return true;
@@ -270,12 +270,12 @@ bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file)
 	FILE *fp = fopen(file, "rb");
 	if(!fp)
 		return false;
-	spritesht_int magic;
-	fread(&magic, sizeof(spritesht_int), 1, fp);
+	whitgl_int magic;
+	fread(&magic, sizeof(whitgl_int), 1, fp);
 	if(magic != spritesht_magic_value)
 		return false;
-	spritesht_int size;
-	fread(&size, sizeof(spritesht_int), 1, fp);
+	whitgl_int size;
+	fread(&size, sizeof(whitgl_int), 1, fp);
 	*sheet = spritesht_create(size);
 	sheet->num_sprites = size;
 	fread(sheet->sprites, sizeof(spritesht_sprite), size, fp);
@@ -289,7 +289,7 @@ bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file)
 		return false;
 	fprintf(fp, "# Size\n");
 	fprintf(fp, "%d\n", (int)sheet->num_sprites);
-	spritesht_int i;
+	whitgl_int i;
 	fprintf(fp, "# Filename, X Size, Y Size, X Pos, Y Pos, X Off, Y Off, X Orig, Y Orig\n");
 	for(i=0; i<sheet->num_sprites; i++)
 	{
@@ -303,7 +303,7 @@ bool spritesht_save_meta_as_csv(spritesht_spritesheet* sheet, const char* file)
 	return true;
 }
 
-bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height, unsigned char **data)
+bool _sys_load_png(const char *name, whitgl_int *width, whitgl_int *height, unsigned char **data)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -373,8 +373,8 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 		*data = (unsigned char*) malloc(row_bytes * read_height);
 		for(i=0; i<read_width*read_height; i++)
 		{
-			spritesht_int dst_index = i*4;
-			spritesht_int src_index = has_alpha ? i*4 : i*3;
+			whitgl_int dst_index = i*4;
+			whitgl_int src_index = has_alpha ? i*4 : i*3;
 			*(*data+dst_index) = load[src_index+0];
 			*(*data+dst_index+1) = load[src_index+1];
 			*(*data+dst_index+2) = load[src_index+2];
@@ -390,7 +390,7 @@ bool _sys_load_png(const char *name, spritesht_int *width, spritesht_int *height
 
 	return true;
 }
-bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, unsigned char *data)
+bool _sys_save_png(const char *name, whitgl_int width, whitgl_int height, unsigned char *data)
 {
 	FILE *fp = fopen(name, "wb");
 	if(!fp) return false;
@@ -422,10 +422,10 @@ bool _sys_save_png(const char *name, spritesht_int width, spritesht_int height, 
 	png_write_info(png, info);
 
 	png_byte ** row_pointers = png_malloc (png, png_height * sizeof (png_byte *));
-	spritesht_int y;
+	whitgl_int y;
 	for (y = 0; y < height; ++y)
 	{
-		spritesht_int size = sizeof (uint8_t) * png_width * 4;
+		whitgl_int size = sizeof (uint8_t) * png_width * 4;
 		row_pointers[y] = &data[size*y];
 	}
 

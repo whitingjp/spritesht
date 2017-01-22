@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 
-spritesht_int randint(spritesht_int size)
+whitgl_int randint(whitgl_int size)
 {
 	return rand() % size;
 }
@@ -14,13 +14,13 @@ int main()
 	time_t t;
  	srand((unsigned) time(&t));
 
- 	spritesht_int num_sprites = 50;
+ 	whitgl_int num_sprites = 50;
 
-	spritesht_int i;
+	whitgl_int i;
 	spritesht_spritesheet sheet = spritesht_create(num_sprites);
 	for(i=0; i<num_sprites; i++)
 	{
-		spritesht_vec size;
+		whitgl_ivec size;
 		size.x = randint(32)+1;
 		size.y = randint(32)+1;
 		spritesht_col col;
