@@ -370,7 +370,7 @@ bool _sys_load_png(const char *name, whitgl_int *width, whitgl_int *height, unsi
 			memcpy(load+(row_bytes * i), row_pointers[i], row_bytes);
 		}
 
-		*data = (unsigned char*) malloc(row_bytes * read_height);
+		*data = (unsigned char*) malloc(read_width * read_height * 4);
 		for(i=0; i<read_width*read_height; i++)
 		{
 			whitgl_int dst_index = i*4;
