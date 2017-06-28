@@ -130,13 +130,14 @@ typedef struct cell
 
 bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_ivec sheet_size)
 {
+	whitgl_int margin = 2;
 	whitgl_int i;
 	spritesht_cell initial = {sheet_size, whitgl_ivec_zero, NULL};
 	spritesht_cell* cells = malloc(sizeof(spritesht_cell));
 	*cells = initial;
-	whitgl_ivec pos = whitgl_ivec_zero;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
+		whitgl_ivec size = {sheet->sprites[i].size.x+margin*2, sheet->sprites[i].size.y+margin*2};
 		if(!cells)
 			return false;
 		spritesht_cell* iter = cells;
@@ -144,8 +145,8 @@ bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_ivec sheet_size)
 		while(iter)
 		{
 			bool ok = true;
-			if(iter->size.x < sheet->sprites[i].size.x) ok = false;
-			if(iter->size.y < sheet->sprites[i].size.y) ok = false;
+			if(iter->size.x < size.x) ok = false;
+			if(iter->size.y < size.y) ok = false;
 			bool better = false;
 			if(!c) better = true;
 			if(c && iter->size.x < c->size.x) better = true;
@@ -157,20 +158,21 @@ bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_ivec sheet_size)
 		if(!c)
 			return false;
 
-		sheet->sprites[i].pos = c->pos;
+		sheet->sprites[i].pos.x = c->pos.x+margin;
+		sheet->sprites[i].pos.y = c->pos.y+margin;
 
 		spritesht_cell old = *c;
-		if(old.size.y > sheet->sprites[i].size.y)
+		if(old.size.y > size.y)
 		{
-			c->size.y = sheet->sprites[i].size.y;
+			c->size.y = size.y;
 			spritesht_cell newcell = {{old.size.x, old.size.y-c->size.y}, {old.pos.x, old.pos.y+c->size.y}, cells};
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
 		}
 		old = *c;
-		if(old.size.x > sheet->sprites[i].size.x)
+		if(old.size.x > size.x)
 		{
-			c->size.x = sheet->sprites[i].size.x;
+			c->size.x = size.x;
 			spritesht_cell newcell = {{old.size.x-c->size.x, old.size.y}, {old.pos.x+c->size.x, old.pos.y}, cells};
 			cells = malloc(sizeof(spritesht_cell));
 			*cells = newcell;
