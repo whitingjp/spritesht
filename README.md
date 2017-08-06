@@ -46,6 +46,7 @@ Usage
     ./spritesht --png packed_sheet.png --csv sheet_data.csv src/images/*.png src/more_images/*.png
 
 Command line arguments:
+
 	* `--png file.png` *required* specify the packed spritesheet image file
 	* `--csv file.csv` optionally specify a csv file for sprite meta data
 	* `--dat file.dat` optionally specify a spritesht format data file for sprite meta data
