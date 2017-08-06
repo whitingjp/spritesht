@@ -28,6 +28,7 @@ Compilation
 -----------
 
 To build spritesht you will need:
+
 * a C compiler
 * make
 * libpng
@@ -42,4 +43,13 @@ hopefully figure out how to build+link the two source files yourself)
 Usage
 -----
 
-???
+    ./spritesht --png packed_sheet.png --csv sheet_data.csv src/images/*.png src/more_images/*.png
+
+Command line arguments:
+	* `--png file.png` *required* specify the packed spritesheet image file
+	* `--csv file.csv` optionally specify a csv file for sprite meta data
+	* `--dat file.dat` optionally specify a spritesht format data file for sprite meta data
+	* `--max 4096` specify the maximum dimensions (max*max) for the packed spritesheet, default 4096
+	* `--margin 2` specify a margin to be placed around every sprite to avoid graphical glitches, default 2
+
+Exit code is 0 if successful, 1 if failed for any reason (see stdout for reason).
