@@ -43,7 +43,7 @@ hopefully figure out how to build+link the two source files yourself)
 Usage
 -----
 
-    ./spritesht --png packed_sheet.png --csv sheet_data.csv src/images/*.png src/more_images/*.png
+    ./spritesht --png packed.png --csv data.csv src/a/*.png src/b/*.png
 
 Command line arguments:
 
