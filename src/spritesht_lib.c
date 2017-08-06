@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-whitgl_int _find_lowest_power(whitgl_int val);
 bool _sys_load_png(const char *name, whitgl_int *width, whitgl_int *height, unsigned char **data);
 bool _sys_save_png(const char *name, whitgl_int width, whitgl_int height, unsigned char *data);
 
