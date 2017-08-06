@@ -7,7 +7,7 @@
 int main(int argc, char** argv)
 {
 	whitgl_int i;
-	spritesht_spritesheet sheet = spritesht_create(4096);
+	spritesht_spritesheet sheet = spritesht_create(argc);
 
 	char* png = NULL;
 	char* dat = NULL;
