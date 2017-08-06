@@ -54,3 +54,7 @@ Command line arguments:
 * `--margin 2` a pixel margin for every sprite, to avoid graphical glitches, default 2
 
 Exit code is 0 if successful, 1 if failed for any reason (see stdout for reason).
+
+To load sprites, you can either pass the csv file yourself, or if using a C
+library is easy enough, use libspritesht's `spritesht_load_meta` to obtain a
+`spritesht_spritesheet` data structure containing the same information.

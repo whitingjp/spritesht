@@ -8,7 +8,7 @@ CFLAGS = -Iinput/libpng -Iinc -g
 LDFLAGS = -Linput/libpng -Linput/zlib -lpng -lz
 DEP = $(INC)/spritesht_lib.h
 
-all: $(OUT)/spritesht $(OUT)/spritesht.a
+all: $(OUT)/spritesht $(OUT)/libspritesht.a
 
 clean:
 	rm -rf $(BUILD)
@@ -22,6 +22,6 @@ $(OUT)/spritesht: $(SPRITESHT_OBJ)
 	@mkdir -p $(dir $(@))
 	gcc $(LDFLAGS) -o $@ $(SPRITESHT_OBJ)
 
-$(OUT)/spritesht.a: $(OBJ)/spritesht_lib.o
+$(OUT)/libspritesht.a: $(OBJ)/spritesht_lib.o
 	@mkdir -p $(dir $(@))
 	ar rcs $@ $<
