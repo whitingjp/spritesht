@@ -39,6 +39,7 @@ typedef struct
 	whitgl_int max_sprites;
 	whitgl_int num_sprites;
 	spritesht_sprite* sprites;
+	whitgl_ivec size;
 } spritesht_spritesheet;
 
 static const whitgl_int spritesht_magic_value = 0x9544fad7;
@@ -46,6 +47,8 @@ static const whitgl_int spritesht_magic_value = 0x9544fad7;
 spritesht_spritesheet spritesht_create(whitgl_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
+
+bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_int max_image_dimension, whitgl_int margin);
 bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file);

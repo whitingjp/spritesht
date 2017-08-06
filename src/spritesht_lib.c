@@ -17,6 +17,7 @@ spritesht_spritesheet spritesht_create(whitgl_int max)
 	whitgl_int i;
 	for(i=0; i<sheet.max_sprites; i++)
 		sheet.sprites[i].data = NULL;
+	sheet.size = whitgl_ivec_zero;
 	return sheet;
 }
 void spritesht_free(spritesht_spritesheet* sheet)
@@ -93,9 +94,6 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	sprite->offset.y = top;
 	sprite->size.x = right-left;
 	sprite->size.y = bottom-top;
-	// printf("sprite->filename %s\n", sprite->filename);
-	// printf("sprite->original_size %d %d\n", (int)sprite->original_size.x, (int)sprite->original_size.y);
-	// printf("sprite->offset %d %d sprite->size %d %d\n", (int)sprite->offset.x, (int)sprite->offset.y, (int)sprite->size.x, (int)sprite->size.y);
 
 	sheet->num_sprites++;
 	return true;
@@ -108,9 +106,8 @@ typedef struct cell
 	struct cell* next;
 } spritesht_cell;
 
-bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_ivec sheet_size)
+bool spritesht_layout_to_size(spritesht_spritesheet* sheet, whitgl_ivec sheet_size, whitgl_int margin)
 {
-	whitgl_int margin = 2;
 	whitgl_int i;
 	spritesht_cell initial = {sheet_size, whitgl_ivec_zero, NULL};
 	spritesht_cell* cells = malloc(sizeof(spritesht_cell));
@@ -187,7 +184,7 @@ int _spritesht_cmpfunc (const void * va, const void * vb)
 	return (b->size.y-a->size.y)*1000 + (b->size.x-a->size.x);
 }
 
-bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
+bool spritesht_layout(spritesht_spritesheet* sheet, whitgl_int max_image_dimension, whitgl_int margin)
 {
 	whitgl_int i;
 	whitgl_ivec size = {1,1};
@@ -197,18 +194,25 @@ bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
 	bool width_next = true;
 	while(true)
 	{
-		if(spritesht_layout(sheet, size))
+		if(spritesht_layout_to_size(sheet, size, margin))
 			break;
 		if(width_next) size.x <<= 1;
 		else size.y <<= 1;
 		width_next = !width_next;
-		if(size.x > 4096) // TODO Don't hard code this limit
+		if(size.x > max_image_dimension)
 			return false;
 	}
+	sheet->size = size;
+	return true;
+}
 
+bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file)
+{
+	whitgl_ivec size = sheet->size;
 	unsigned char* out_data = malloc(size.x*size.y*4);
 	memset(out_data, '\0', size.x*size.y*4);
 
+	whitgl_int i;
 	for(i=0; i<sheet->num_sprites; i++)
 	{
 		spritesht_sprite s = sheet->sprites[i];
