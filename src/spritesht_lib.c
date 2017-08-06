@@ -100,25 +100,6 @@ bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file)
 	sheet->num_sprites++;
 	return true;
 }
-bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, whitgl_ivec size, spritesht_col col)
-{
-	if(sheet->num_sprites >= sheet->max_sprites)
-		return false;
-	spritesht_sprite* sprite = &sheet->sprites[sheet->num_sprites];
-	sprite->size = size;
-	sprite->data = malloc(size.x*size.y*4);
-	whitgl_int i;
-	for(i=0; i<size.x*size.y*4; i+=4)
-	{
-		sprite->data[i+0] = col.r;
-		sprite->data[i+1] = col.g;
-		sprite->data[i+2] = col.b;
-		sprite->data[i+3] = col.a;
-	}
-	strncpy(sprite->filename, "fake", 254);
-	sheet->num_sprites++;
-	return true;
-}
 
 typedef struct cell
 {

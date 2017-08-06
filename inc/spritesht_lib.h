@@ -46,7 +46,6 @@ static const whitgl_int spritesht_magic_value = 0x9544fad7;
 spritesht_spritesheet spritesht_create(whitgl_int max);
 void spritesht_free(spritesht_spritesheet* sheet);
 bool spritesht_add_sprite(spritesht_spritesheet* sheet, const char* file);
-bool spritesht_add_fake_sprite(spritesht_spritesheet* sheet, whitgl_ivec size, spritesht_col col);
 bool spritesht_save_image(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_save_meta(spritesht_spritesheet* sheet, const char* file);
 bool spritesht_load_meta(spritesht_spritesheet* sheet, const char* file);
