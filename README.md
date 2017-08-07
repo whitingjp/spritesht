@@ -3,6 +3,8 @@ spritesht
 
 A tiny C application and library for producing packed spritesheets.
 
+![Output Example](http://jonathanwhiting.com/images/spritesht_sizzle.png)
+
 Why?
 ----
 
