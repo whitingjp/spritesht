@@ -15,7 +15,7 @@ many ways of making them that are:
 * Easy to incorporate into builds
 * Reasonably simple to modify/extend
 
-spritesht is hopefully all of those things!
+spritesht is hopefully all of those things :)
 
 Limitations
 -----------
